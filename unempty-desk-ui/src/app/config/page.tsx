@@ -137,7 +137,11 @@ export default function ConfigPage() {
   }, []);
 
   if (!isClient) {
-    return <Loading />;
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center">
+        <Loading size="xxl" />
+      </main>
+    );
   }
 
   return (

@@ -7,11 +7,10 @@ import { auth } from "@unempty-desk-ui/lib/firebase";
 import { Button } from "@unempty-desk-ui/components/Button";
 import Image from "next/image";
 import { User } from "lucide-react";
-import { useStopStreamOnRouteChange } from "@unempty-desk-ui/hooks/useStopStreamOnRouteChange";
 import NavBar from "@unempty-desk-ui/components/NavBar";
 import Footer from "@unempty-desk-ui/components/Footer";
+
 export default function LoginPage() {
-  useStopStreamOnRouteChange();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -62,7 +61,6 @@ export default function LoginPage() {
               onChange={e => setEmail(e.target.value)}
               required
             />
-
             <input
               type="password"
               placeholder="Password"
@@ -71,7 +69,7 @@ export default function LoginPage() {
               onChange={e => setPassword(e.target.value)}
               required
             />
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {error ? <p className="text-red-500 text-sm">{error}</p> : <></>}
             <Button type="submit" className="w-full py-2 text-lg">
               Login
             </Button>

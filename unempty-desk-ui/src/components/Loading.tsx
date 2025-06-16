@@ -1,10 +1,12 @@
 import React from "react";
 
-const Loading = ({ size = "md" }: { size?: "lg" | "md" | "sm" }) => {
+const Loading = ({ size = "md" }: { size?: "lg" | "md" | "sm" | "xl" | "xxl" }) => {
   const sizeClasses = {
-    lg: "w-16 h-16",
-    md: "w-10 h-10",
-    sm: "w-6 h-6",
+    xxl: 96,
+    xl: 24,
+    lg: 16,
+    md: 10,
+    sm: 6,
   };
   return (
     <div role="status">

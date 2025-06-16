@@ -8,10 +8,8 @@ import DeskAnimation from "@unempty-desk-ui/lotties/desk.json";
 import Lottie from "lottie-react";
 import { useRouter } from "next/navigation";
 import Footer from "@unempty-desk-ui/components/Footer";
-import { useStopStreamOnRouteChange } from "@unempty-desk-ui/hooks/useStopStreamOnRouteChange";
 
 export default function Home() {
-  useStopStreamOnRouteChange();
   const router = useRouter();
 
   return (
