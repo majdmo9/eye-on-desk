@@ -1,0 +1,5 @@
+fastapi
+ultralytics
+shapely
+opencv-python
+uvicorn

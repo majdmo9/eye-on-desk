@@ -1,0 +1,11 @@
+names: ["person", "bag", "laptop", "mouse", "ipad"]
+nc: 5
+roboflow:
+  license: CC BY 4.0
+  project: unempty-desk-g7oyj
+  url: https://universe.roboflow.com/unemptydesk-dftq0/unempty-desk-g7oyj/dataset/1
+  version: 1
+  workspace: unemptydesk-dftq0
+test: /Users/majdmousa/Library/CloudStorage/OneDrive-YezreelValleyCollege/Documents/Third Year/פרויקט-גמר/unempty-desk/unempty-desk-1/test/images
+train: /Users/majdmousa/Library/CloudStorage/OneDrive-YezreelValleyCollege/Documents/Third Year/פרויקט-גמר/unempty-desk/unempty-desk-1/train/images
+val: /Users/majdmousa/Library/CloudStorage/OneDrive-YezreelValleyCollege/Documents/Third Year/פרויקט-גמר/unempty-desk/unempty-desk-1/valid/images

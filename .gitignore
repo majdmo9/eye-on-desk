@@ -1,0 +1,8 @@
+.venv
+/resized-images
+.venv/
+node_modules/
+*.csv
+*.dylib
+*.node
+*.pack
