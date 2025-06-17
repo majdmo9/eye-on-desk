@@ -41,7 +41,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-video_streaming_enabled = False
 state = SpaceState()
 detected_classes = DetectedClasses()
 rect = RectangleCoordinates()
@@ -122,7 +121,7 @@ def process_frame(frame):
             )
         ],
         True,
-        (0, 255, 0),
+        (255, 255, 0),
         2,
     )
 
@@ -193,7 +192,7 @@ def video_stream():
         raise RuntimeError("Unable to open video stream")
 
     try:
-        while video_streaming_enabled:
+        while True:
             ret, frame = cap.read()
             if not ret:
                 break
@@ -210,26 +209,9 @@ def video_stream():
 
 @app.get("/video-stream")
 def get_video_stream():
-    global video_streaming_enabled
-    if video_streaming_enabled:
-        video_streaming_enabled = False
-        time.sleep(1)
-    video_streaming_enabled = True
     return StreamingResponse(
         video_stream(), media_type="multipart/x-mixed-replace; boundary=frame"
     )
-
-
-@app.delete("/video-stream")
-def stop_video_stream():
-    global video_streaming_enabled
-    video_streaming_enabled = False
-    return JSONResponse(content={"message": "Video stream stopped"})
-
-
-@app.get("/space-status")
-def get_space_status():
-    return JSONResponse(content={"status": state.get_status()})
 
 
 @app.get("/space-status/stream")
@@ -281,7 +263,9 @@ async def put_rect_coordinates(
 
     rect_coordinates_ref = db.collection("rect-coordinates")
     try:
+        # Update the rectangle coordinates in Firestore
         rect_coordinates_ref.document(uid).set(rect_coordinates)
+        # Update the rectangle object with new coordinates
         rect.set_rect_coordinates(
             rect_coordinates["x"],
             rect_coordinates["y"],
