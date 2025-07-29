@@ -1,11 +1,14 @@
 "use client";
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Footer from "@unempty-desk-ui/components/Footer";
 import NavBar from "@unempty-desk-ui/components/NavBar";
 import StatusButtons from "@unempty-desk-ui/components/StatusButtons";
-import VideoPlayer from "@unempty-desk-ui/components/VideoPlayer";
 import { SpaceStatusType } from "@unempty-desk-ui/types/SpaceStatusType";
-import { useEffect, useState } from "react";
 
+const VideoPlayer = dynamic(() => import("@unempty-desk-ui/components/VideoPlayer"), {
+  ssr: false,
+});
 export default function Dashboard() {
   const [spaceStatus, setSpaceStatus] = useState<SpaceStatusType>();
 

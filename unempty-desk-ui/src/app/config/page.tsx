@@ -1,7 +1,9 @@
 "use client";
-import { Button } from "@unempty-desk-ui/components/Button";
-import VideoPlayer from "@unempty-desk-ui/components/VideoPlayer";
 import { useEffect, useState, useRef } from "react";
+import dynamic from "next/dynamic";
+import { onAuthStateChanged } from "firebase/auth";
+
+import { Button } from "@unempty-desk-ui/components/Button";
 import { auth } from "@unempty-desk-ui/lib/firebase";
 import { denormalizeRect } from "@unempty-desk-ui/utils/denormalizeRect";
 import { Rect } from "@unempty-desk-ui/types/Rect";
@@ -10,9 +12,12 @@ import { DragType } from "@unempty-desk-ui/types/resizableRect";
 import { clamp } from "@unempty-desk-ui/utils/clamp";
 import { MIN_SIZE } from "@unempty-desk-ui/utils/constants";
 import { toast } from "react-toastify";
-import { onAuthStateChanged } from "firebase/auth";
 import Footer from "@unempty-desk-ui/components/Footer";
 import NavBar from "@unempty-desk-ui/components/NavBar";
+
+const VideoPlayer = dynamic(() => import("@unempty-desk-ui/components/VideoPlayer"), {
+  ssr: false,
+});
 
 export default function ConfigPage() {
   const [rect, setRect] = useState<Rect>({ x: 100, y: 100, width: 200, height: 150 });
@@ -22,6 +27,7 @@ export default function ConfigPage() {
   const [dragStart, setDragStart] = useState<{ x: number; y: number; rect: Rect } | null>(null);
   const [saveLoading, setSaveLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
 
   const fetchRectCoordinates = async () => {
@@ -84,14 +90,12 @@ export default function ConfigPage() {
     setDragStart(null);
   };
 
-  const getNormalizedRect = (rect: Rect, containerWidth: number, containerHeight: number) => {
-    return {
-      x: rect.x / containerWidth,
-      y: rect.y / containerHeight,
-      width: rect.width / containerWidth,
-      height: rect.height / containerHeight,
-    };
-  };
+  const getNormalizedRect = (rect: Rect, containerWidth: number, containerHeight: number) => ({
+    x: rect.x / containerWidth,
+    y: rect.y / containerHeight,
+    width: rect.width / containerWidth,
+    height: rect.height / containerHeight,
+  });
 
   const handleSave = async () => {
     try {
@@ -99,6 +103,7 @@ export default function ConfigPage() {
       setSaveLoading(true);
       const rectToPut = getNormalizedRect(rect, videoPlayerBounds?.width || 1, videoPlayerBounds?.height || 1);
       const token = (await auth.currentUser?.getIdToken()) || "";
+
       const res = await fetch("http://localhost:8000/coordinates", {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -119,24 +124,30 @@ export default function ConfigPage() {
   };
 
   useEffect(() => {
-    fetchRectCoordinates();
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (videoPlayerBounds) {
+      fetchRectCoordinates();
+    }
   }, [videoPlayerBounds]);
 
   useEffect(() => {
+    if (!isClient) return;
+
     const unsubscribe = onAuthStateChanged(auth, firebaseUser => {
+      setIsAuthenticated(!!firebaseUser);
       if (!firebaseUser) {
         window.location.href = "/login";
       }
     });
 
-    return () => unsubscribe(); // Clean up listener on unmount
-  }, []);
+    return () => unsubscribe();
+  }, [isClient]);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient) {
+  // Show loading until we know the auth state and client is ready
+  if (!isClient || isAuthenticated === null) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center">
         <Loading size="xxl" />
@@ -147,7 +158,7 @@ export default function ConfigPage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-between">
       <div
-        className="flex flex-col items-center justify-center gap-8 text-slate-300"
+        className="flex flex-col items-center justify-center gap-8 text-slate-300 h-full"
         style={{ visibility: !videoPlayerBounds ? "hidden" : "visible" }}
       >
         <NavBar title="Configure Desk Space" />
@@ -161,40 +172,40 @@ export default function ConfigPage() {
           onMouseUp={handleMouseUp}
           className="w-2/3 items-center"
         >
-          <div>
-            <VideoPlayer setVideoPlayerBounds={setVideoPlayerBounds} />
-          </div>
-          <div
-            style={{
-              position: "absolute",
-              left: rect.x,
-              top: rect.y,
-              width: rect.width,
-              height: rect.height,
-              border: "2px solid #f00",
-              background: "rgba(255,0,0,0.1)",
-              cursor: dragType === "move" ? "move" : "pointer",
-              boxSizing: "border-box",
-              userSelect: "none",
-            }}
-            onMouseDown={e => handleMouseDown(e, "move")}
-          >
+          <VideoPlayer setVideoPlayerBounds={setVideoPlayerBounds} />
+          {videoPlayerBounds && (
             <div
               style={{
                 position: "absolute",
-                right: -8,
-                bottom: -8,
-                width: 16,
-                height: 16,
-                background: "#fff",
+                left: rect.x,
+                top: rect.y,
+                width: rect.width,
+                height: rect.height,
                 border: "2px solid #f00",
-                borderRadius: 4,
-                cursor: "nwse-resize",
-                zIndex: 2,
+                background: "rgba(255,0,0,0.1)",
+                cursor: dragType === "move" ? "move" : "pointer",
+                boxSizing: "border-box",
+                userSelect: "none",
               }}
-              onMouseDown={e => handleMouseDown(e, "resize")}
-            />
-          </div>
+              onMouseDown={e => handleMouseDown(e, "move")}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  right: -8,
+                  bottom: -8,
+                  width: 16,
+                  height: 16,
+                  background: "#fff",
+                  border: "2px solid #f00",
+                  borderRadius: 4,
+                  cursor: "nwse-resize",
+                  zIndex: 2,
+                }}
+                onMouseDown={e => handleMouseDown(e, "resize")}
+              />
+            </div>
+          )}
         </div>
         <Button
           disabled={saveLoading || rectDisabled}

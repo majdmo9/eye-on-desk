@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse, JSONResponse
 from sse_starlette.sse import EventSourceResponse
 from fastapi.middleware.cors import CORSMiddleware
 from ultralytics import YOLO
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -24,6 +24,7 @@ from classes.PolygonWrapper import PolygonWrapper
 from utils.constants import DESK_ITEMS, POLYGON_POINTS
 from utils.rect_to_polygon_points import rect_to_polygon_points
 from utils.denormalize_rect import denormalize_rect
+from utils.hour_to_minutes_after_midnight import time_to_minutes_after_midnight
 from mean_prediction import predict_use_time as predict_student_use_time
 from firebase.firebase_config import verify_firebase_token, db
 from firebase.fetch import fetch_rect_coordinates
@@ -150,7 +151,6 @@ def process_frame(frame):
 
             color = get_box_color(inside_polygon)
             create_detected_obj_box(frame, x1, y1, x2, y2, color, class_name, conf)
-
     update_space_status(currently_detected_classes, person_currently_inside)
     if state.person_inside and not person_currently_inside and state.is_available():
         state.person_inside = False
@@ -171,7 +171,7 @@ def process_frame(frame):
             append_csv_row(
                 "cam-records.csv",
                 row=Row(
-                    start_time=state.start_time.hour,
+                    start_time=time_to_minutes_after_midnight(state.start_time.hour),
                     duration=state.duration_minutes,
                     laptop=state.detected_items[0],
                     ipad=state.detected_items[1],
@@ -238,7 +238,7 @@ def predict_use_time():
         content={
             "predicted_duration": predict_student_use_time(
                 new_data=RowToPredict(
-                    start_time=state.start_time.hour,
+                    start_time=time_to_minutes_after_midnight(state.start_time.hour),
                     laptop=state.detected_items[0],
                     ipad=state.detected_items[1],
                     mouse=state.detected_items[2],

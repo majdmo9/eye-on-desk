@@ -10,7 +10,7 @@ const StatusButton = ({ type }: { type: StatusButtonType }) => {
 
   return (
     <div className="flex flex-wrap gap-3 w-full items-center justify-center">
-      {Array.from({ length: 10 }).map((_, index) =>
+      {Array.from({ length: 12 }).map((_, index) =>
         index === 0 ? (
           <div
             key={index}

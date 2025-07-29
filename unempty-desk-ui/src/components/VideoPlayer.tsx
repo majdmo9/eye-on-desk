@@ -16,17 +16,20 @@ export const VideoPlayer: React.FC<{
     videoStream.style.objectFit = "contain";
 
     videoStream.onload = () => {
-      if (setVideoPlayerBounds) {
-        const bounds = videoStream.getBoundingClientRect();
-        setVideoPlayerBounds({ width: bounds.width, height: bounds.height });
+      if (containerRef.current) {
+        containerRef.current.innerHTML = "";
+        containerRef.current.appendChild(videoStream);
+        videoRef.current = videoStream;
+
+        requestAnimationFrame(() => {
+          const bounds = videoStream.getBoundingClientRect();
+
+          if (setVideoPlayerBounds) {
+            setVideoPlayerBounds({ width: bounds.width, height: bounds.height });
+          }
+        });
       }
     };
-
-    if (containerRef.current) {
-      containerRef.current.innerHTML = "";
-      containerRef.current.appendChild(videoStream);
-      videoRef.current = videoStream;
-    }
   }, [setVideoPlayerBounds]);
 
   return (

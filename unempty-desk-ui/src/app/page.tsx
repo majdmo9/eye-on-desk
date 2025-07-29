@@ -1,13 +1,15 @@
 "use client";
 
-import { Button } from "@unempty-desk-ui/components/Button";
+import dynamic from "next/dynamic";
 import { RocketIcon, EyeIcon, ClockIcon } from "lucide-react";
+import { Button } from "@unempty-desk-ui/components/Button";
 import { motion } from "framer-motion";
 import { cn } from "@unempty-desk-ui/utils/cn";
 import DeskAnimation from "@unempty-desk-ui/lotties/desk.json";
-import Lottie from "lottie-react";
 import { useRouter } from "next/navigation";
 import Footer from "@unempty-desk-ui/components/Footer";
+
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
 export default function Home() {
   const router = useRouter();
@@ -56,7 +58,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="pb-16 px-6 max-w-5xl mx-auto grid gap-12 md:grid-cols-3">
+      <section className="pb-32 px-6 max-w-5xl mx-auto grid gap-12 md:grid-cols-3">
         {[
           {
             Icon: EyeIcon,

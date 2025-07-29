@@ -9,22 +9,26 @@ import Image from "next/image";
 import { User } from "lucide-react";
 import NavBar from "@unempty-desk-ui/components/NavBar";
 import Footer from "@unempty-desk-ui/components/Footer";
+import Loading from "@unempty-desk-ui/components/Loading";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const token = await userCredential.user.getIdToken();
-
       // Store token in localStorage or send to backend
       localStorage.setItem("token", token);
-
       // You can redirect or call protected API here
       router.push("/camera");
     } catch (err) {
@@ -39,9 +43,16 @@ export default function LoginPage() {
         router.push("/camera");
       }
     });
-
     return () => unsubscribe(); // Clean up listener on unmount
   }, []);
+
+  if (!isClient) {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center">
+        <Loading size="xxl" />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-between">

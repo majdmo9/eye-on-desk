@@ -26,6 +26,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+        <title>Eye On Desk</title>
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ToastContainer theme="dark" />
         <AuthProvider>{children}</AuthProvider>
