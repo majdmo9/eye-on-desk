@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { auth } from "@unempty-desk-ui/lib/firebase";
@@ -6,38 +7,38 @@ import { Home, LogOut, Settings, User as UserIcon } from "lucide-react";
 import { Button } from "./Button";
 import { usePathname } from "next/navigation";
 import PopUp from "./PopUp";
-import { User as FirebaseUser } from "firebase/auth";
+import { User as FirebaseUser, onAuthStateChanged } from "firebase/auth";
+import ClientOnly from "./ClientOnly";
 
-const User = () => {
+function UserContent() {
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [isClient, setIsClient] = useState(false);
+  const [authLoaded, setAuthLoaded] = useState(false);
   const pathName = usePathname();
 
   useEffect(() => {
-    setIsClient(true);
+    const unsubscribe = onAuthStateChanged(auth, firebaseUser => {
+      setUser(firebaseUser);
+      setAuthLoaded(true);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (isClient && auth.currentUser) {
-      setUser(auth.currentUser);
-    }
-  }, [isClient, auth.currentUser]);
-
-  // Prevent hydration mismatch by not rendering anything until client-side
-  if (!isClient) {
-    return <Button className="text-lg font-extrabold px-4 py-2 uppercase">Login</Button>;
+  if (pathName === "/login") {
+    return null;
   }
 
-  if (pathName === "/login") {
-    return <></>;
+  // Show loading state until auth is determined
+  if (!authLoaded) {
+    return <Button className="text-lg font-extrabold px-4 py-2 uppercase">Login</Button>;
   }
 
   if (!user) {
     return (
       <Button
         className="text-lg font-extrabold px-4 py-2 uppercase"
-        onClick={async () => {
+        onClick={() => {
           window.location.href = "/login";
         }}
       >
@@ -63,7 +64,7 @@ const User = () => {
         <span className="absolute -inset-1.5" />
         <span className="sr-only">Open user menu</span>
         {user?.photoURL ? (
-          <Image loader={({ src }) => src} alt="" src={user?.photoURL} className="size-12 rounded-full" width={48} height={48} />
+          <Image loader={({ src }) => src} alt="" src={user.photoURL} className="size-12 rounded-full" width={48} height={48} />
         ) : (
           <UserIcon size={54} className="text-slate-300 bg-slate-800 rounded-full p-1" />
         )}
@@ -104,6 +105,14 @@ const User = () => {
         </MenuItem>
       </MenuItems>
     </Menu>
+  );
+}
+
+const User = () => {
+  return (
+    <ClientOnly fallback={<Button className="text-lg font-extrabold px-4 py-2 uppercase">Login</Button>}>
+      <UserContent />
+    </ClientOnly>
   );
 };
 

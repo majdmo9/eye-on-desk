@@ -43,7 +43,7 @@ export default function LoginPage() {
         router.push("/camera");
       }
     });
-    return () => unsubscribe(); // Clean up listener on unmount
+    return () => unsubscribe();
   }, []);
 
   if (!isClient) {
@@ -55,9 +55,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-between">
+    <main className="min-h-screen flex flex-col items-center justify-start">
       <NavBar />
-      <div className="flex flex-col md:flex-row items-center justify-center gap-32 w-full px-4 md:px-0">
+      <div className="flex flex-col md:flex-row items-center justify-center gap-32 w-full px-4 md:px-0 mt-24">
         <form
           onSubmit={handleLogin}
           className="h-[500px] bg-slate-700 p-8 rounded-md shadow-md w-full max-w-sm items-center justify-center flex flex-col"

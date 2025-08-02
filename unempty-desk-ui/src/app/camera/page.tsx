@@ -32,7 +32,7 @@ export default function Dashboard() {
   return (
     <main className="min-h-screen h-full flex flex-col items-center justify-between">
       <NavBar />
-      <div className="flex flex-col w-full items-center justify-center gap-6 mt-10 mb-4">
+      <div className="flex flex-col w-full items-center justify-center gap-6 mb-4">
         <StatusButtons spaceStatus={spaceStatus} />
       </div>
       <VideoPlayer hidden />

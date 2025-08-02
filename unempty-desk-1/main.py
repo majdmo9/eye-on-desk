@@ -45,7 +45,7 @@ app.add_middleware(
 state = SpaceState()
 detected_classes = DetectedClasses()
 rect = RectangleCoordinates()
-model = YOLO("./yolo11n.pt")
+model = YOLO("./best.pt")
 
 
 def update_polygon():

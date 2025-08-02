@@ -14,27 +14,29 @@ import { MIN_SIZE } from "@unempty-desk-ui/utils/constants";
 import { toast } from "react-toastify";
 import Footer from "@unempty-desk-ui/components/Footer";
 import NavBar from "@unempty-desk-ui/components/NavBar";
+import ClientOnly from "@unempty-desk-ui/components/ClientOnly";
 
 const VideoPlayer = dynamic(() => import("@unempty-desk-ui/components/VideoPlayer"), {
   ssr: false,
 });
 
-export default function ConfigPage() {
+// Separate the main content into its own component to avoid hydration issues
+function ConfigPageContent() {
   const [rect, setRect] = useState<Rect>({ x: 100, y: 100, width: 200, height: 150 });
   const [rectDisabled, setRectDisabled] = useState(false);
   const [videoPlayerBounds, setVideoPlayerBounds] = useState<{ width: number; height: number } | null>(null);
   const [dragType, setDragType] = useState<DragType>(null);
   const [dragStart, setDragStart] = useState<{ x: number; y: number; rect: Rect } | null>(null);
   const [saveLoading, setSaveLoading] = useState(false);
-  const [isClient, setIsClient] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
   const videoContainerRef = useRef<HTMLDivElement>(null);
 
   const fetchRectCoordinates = async () => {
     try {
       const response = await fetch("http://localhost:8000/coordinates");
       if (!response.ok) {
-        throw new Error("Failed to save rectangle coordinates");
+        throw new Error("Failed to fetch rectangle coordinates");
       }
       const data = await response.json();
       if (data) {
@@ -111,20 +113,35 @@ export default function ConfigPage() {
       });
       if (!res.ok) {
         console.error("Failed to save rectangle coordinates");
+        toast.dismiss();
+        toast.error("Failed to save configuration");
       } else {
         console.log("Rectangle coordinates saved successfully");
+        toast.dismiss();
+        toast.success("Desk space configuration saved successfully!");
       }
     } catch (error) {
       console.error("Error saving rectangle coordinates:", error);
-    } finally {
       toast.dismiss();
-      toast.success("Desk space configuration saved successfully!");
+      toast.error("Error saving configuration");
+    } finally {
       setSaveLoading(false);
     }
   };
 
+  // Handle authentication state
   useEffect(() => {
-    setIsClient(true);
+    const unsubscribe = onAuthStateChanged(auth, firebaseUser => {
+      setIsAuthenticated(!!firebaseUser);
+      setAuthLoaded(true);
+
+      if (!firebaseUser) {
+        // Use replace instead of href to avoid hydration issues
+        window.location.replace("/login");
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -133,21 +150,17 @@ export default function ConfigPage() {
     }
   }, [videoPlayerBounds]);
 
-  useEffect(() => {
-    if (!isClient) return;
+  // Show loading while auth is being determined
+  if (!authLoaded || isAuthenticated === null) {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center">
+        <Loading size="xxl" />
+      </main>
+    );
+  }
 
-    const unsubscribe = onAuthStateChanged(auth, firebaseUser => {
-      setIsAuthenticated(!!firebaseUser);
-      if (!firebaseUser) {
-        window.location.href = "/login";
-      }
-    });
-
-    return () => unsubscribe();
-  }, [isClient]);
-
-  // Show loading until we know the auth state and client is ready
-  if (!isClient || isAuthenticated === null) {
+  // Don't render anything if not authenticated (will redirect)
+  if (!isAuthenticated) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center">
         <Loading size="xxl" />
@@ -164,10 +177,7 @@ export default function ConfigPage() {
         <NavBar title="Configure Desk Space" />
         <div
           ref={videoContainerRef}
-          style={{
-            position: "relative",
-            cursor: dragType === "move" ? "move" : dragType === "resize" ? "nwse-resize" : "default",
-          }}
+          style={{ position: "relative", cursor: dragType || "default" }}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           className="w-2/3 items-center"
@@ -217,5 +227,20 @@ export default function ConfigPage() {
       </div>
       <Footer />
     </main>
+  );
+}
+
+// Main export with ClientOnly wrapper
+export default function ConfigPage() {
+  return (
+    <ClientOnly
+      fallback={
+        <main className="min-h-screen flex flex-col items-center justify-center">
+          <Loading size="xxl" />
+        </main>
+      }
+    >
+      <ConfigPageContent />
+    </ClientOnly>
   );
 }
