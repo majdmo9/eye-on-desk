@@ -38,13 +38,7 @@ export const VideoPlayer: React.FC<{
       }
     };
 
-    const handleError = (error: Event) => {
-      console.error("Video stream failed to load:", error);
-      setIsLoaded(false);
-    };
-
     videoStream.onload = handleLoad;
-    videoStream.onerror = handleError;
 
     return () => {
       videoStream.onload = null;
